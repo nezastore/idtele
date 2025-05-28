@@ -41,7 +41,7 @@ def id_command(update: Update, context: CallbackContext) -> None:
 
 def main():
     # Ganti 'YOUR_BOT_TOKEN' dengan token bot Telegram Anda
-    updater = Updater("YOUR_BOT_TOKEN", use_context=True)
+    updater = Updater("8063311159:AAHnKuZkk2AkU2AUSsSlIXxGVcccjB5h0uA", use_context=True)
 
     dispatcher = updater.dispatcher
 
