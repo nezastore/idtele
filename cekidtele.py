@@ -1,52 +1,57 @@
-from telegram import Update, ParseMode
-from telegram.ext import Updater, CommandHandler, CallbackContext
-import datetime
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext, MessageHandler, Filters
+import random
 
-# Fungsi untuk format tanggal pembuatan akun (Telegram API tidak menyediakan tanggal ini)
-def get_account_creation_date(user_id: int) -> str:
-    # Telegram tidak menyediakan tanggal pembuatan akun secara resmi melalui API.
-    # Sebagai alternatif, kita bisa memberikan info bahwa data ini tidak tersedia.
-    return "❓ Tidak tersedia melalui API Telegram"
+# Daftar kutipan inspiratif
+QUOTES = [
+    "Jangan pernah menyerah, karena kegagalan adalah awal dari kesuksesan.",
+    "Kesuksesan adalah hasil dari persiapan, kerja keras, dan belajar dari kegagalan.",
+    "Hidup adalah 10% apa yang terjadi pada kita dan 90% bagaimana kita meresponnya.",
+    "Jadilah perubahan yang ingin kamu lihat di dunia.",
+    "Keberanian bukanlah ketiadaan rasa takut, tapi kemampuan untuk mengatasi rasa takut.",
+    "Setiap hari adalah kesempatan baru untuk menjadi lebih baik.",
+    "Impian tidak akan menjadi kenyataan tanpa kerja keras dan ketekunan."
+]
 
 def start(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
-    message = (
-        f"👋 Hai, *{user.first_name}*!\n\n"
-        "Saya adalah bot yang bisa membantu kamu melihat informasi akun Telegram-mu.\n"
-        "Ketik /id untuk melihat detail akunmu."
+    keyboard = [
+        [InlineKeyboardButton("CEKID", callback_data='cekid')],
+        [InlineKeyboardButton("QUOTE", callback_data='quote')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text(
+        "👋 Halo! Silakan pilih menu di bawah ini:",
+        reply_markup=reply_markup
     )
-    update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
 
-def id_command(update: Update, context: CallbackContext) -> None:
-    user = update.effective_user
+def button_handler(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    query.answer()
 
-    # Ambil data user
-    user_id = user.id
-    first_name = user.first_name or ""
-    last_name = user.last_name or ""
-    username = f"@{user.username}" if user.username else "Tidak ada username"
+    if query.data == 'cekid':
+        user = query.from_user
+        message = (
+            f"🆔 *Informasi Akun Telegram Kamu:*\n\n"
+            f"👤 Nama Lengkap: {user.first_name} {user.last_name or ''}\n"
+            f"🔖 Username: @{user.username if user.username else 'Tidak ada username'}\n"
+            f"🆔 ID Akun: `{user.id}`"
+        )
+        query.edit_message_text(text=message, parse_mode=ParseMode.MARKDOWN)
 
-    # Tanggal pembuatan akun (tidak tersedia, jadi pakai fungsi placeholder)
-    creation_date = get_account_creation_date(user_id)
-
-    message = (
-        f"🆔 *Informasi Akun Telegram Kamu:*\n\n"
-        f"👤 Nama Lengkap: {first_name} {last_name}\n"
-        f"🔖 Username: {username}\n"
-        f"🆔 ID Akun: `{user_id}`\n"
-        f"📅 Tanggal Pembuatan Akun: {creation_date}\n\n"
-        "Terima kasih sudah menggunakan bot ini! 😊"
-    )
-    update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
+    elif query.data == 'quote':
+        quote = random.choice(QUOTES)
+        message = f"💡 *Kutipan Inspiratif:*\n\n_{quote}_"
+        query.edit_message_text(text=message, parse_mode=ParseMode.MARKDOWN)
 
 def main():
-    # Ganti 'YOUR_BOT_TOKEN' dengan token bot Telegram Anda
-    updater = Updater("8063311159:AAHnKuZkk2AkU2AUSsSlIXxGVcccjB5h0uA", use_context=True)
+    # Ganti dengan token bot Telegram Anda
+    TELEGRAM_BOT_TOKEN = "8063311159:AAHnKuZkk2AkU2AUSsSlIXxGVcccjB5h0uA"
 
+    updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
 
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("id", id_command))
+    dispatcher.add_handler(CallbackQueryHandler(button_handler))
 
     print("Bot berjalan... Tekan Ctrl+C untuk berhenti.")
     updater.start_polling()
